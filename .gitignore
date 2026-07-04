@@ -1,0 +1,19 @@
+# venv
+venv/
+.venv/
+
+# python cache
+__pycache__/
+*.pyc
+
+# jupyter
+.ipynb_checkpoints/
+
+# logs
+*.log
+
+# OS
+.DS_Store
+
+# spark temp
+*.crc

@@ -3,7 +3,7 @@ from pyspark.sql.window import Window
 from pyspark.sql.functions import broadcast 
 
 # В Jupyter без geo
-from geo.haversine import Haversine
+from haversine import Haversine
 
 
 # Создаю класс для привязки событий к ближайшему городу
@@ -47,12 +47,13 @@ class CityMatcher:
             )
         )
         # выбираю ближайший город для каждого события 
-        window = Window.partitionBy('user_id', 'message_id').orderBy(F.col('distance'))
+        window = Window.partitionBy("user_id", "message_id").orderBy(F.col("distance"))        
         
-        result = with_distance.withColumn(
-            'rn',
-            F.row_number().over(window)
-        ).filter(F.col('rn') == 1)
+        result = (
+            with_distance
+            .withColumn("rn", F.row_number().over(window))
+            .filter(F.col("rn") == 1)
+        )
 
         # результат
         return result.select(

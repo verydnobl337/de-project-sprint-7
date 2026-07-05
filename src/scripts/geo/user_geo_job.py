@@ -2,10 +2,10 @@ import sys
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 
-from geo.city_matcher import CityMatcher
-from geo.act_city import ActCityBuilder
-from geo.home_city import HomeCityBuilder
-from geo.travel import TravelBuilder
+from city_matcher import CityMatcher
+from act_city import ActCityBuilder
+from home_city import HomeCityBuilder
+from travel import TravelBuilder
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
     spark = SparkSession.builder.appName(f"UserGeoJob-{date}").getOrCreate()
 
     events = spark.read.parquet(f"{events_path}/date={date}")
-    geo = spark.read.option("header", True).csv(geo_path)
+    geo = spark.read.option("header", True).option("sep", ";").csv(geo_path)
 
     city_matched = CityMatcher(events, geo).match()
 
@@ -31,7 +31,7 @@ def main():
         .join(travel, "user_id", "left")
     )
 
-    result.write.mode("overwrite").parquet(f"{output_path}/date={date}")
+    result.write.mode("overwrite").parquet(f"{output_path}/users_geo/date={date}")
 
 
 if __name__ == "__main__":

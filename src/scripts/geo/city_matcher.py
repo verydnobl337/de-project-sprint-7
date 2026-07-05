@@ -2,6 +2,7 @@ from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 from pyspark.sql.functions import broadcast 
 
+# В Jupyter без geo
 from geo.haversine import Haversine
 
 

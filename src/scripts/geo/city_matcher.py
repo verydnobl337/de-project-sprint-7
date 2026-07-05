@@ -20,9 +20,9 @@ class CityMatcher:
         3) выбираю ближайший город
         """
         events = self.events_df.select(
-            F.col("user_id"),
-            F.col("message_id"),
-            F.col("ts"),
+            F.col("event.message_from").alias("user_id"),
+            F.col("event.message_id").alias("message_id"),
+            F.col("event.message_ts").alias("ts"),
             F.col("lat").alias("event_lat"),
             F.col("lon").alias("event_lon")
         )

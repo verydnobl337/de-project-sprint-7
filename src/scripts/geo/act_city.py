@@ -15,22 +15,23 @@ class ActCityBuilder:
         2) находим последнее событие по времени
         3) считаем город этого события текущим местоположением пользователя
         """
+        
+        df = self.df.withColumn("ts", F.to_timestamp("ts"))
+    
         # последнее смс пользователя
         window = Window.partitionBy('user_id').orderBy(F.col('ts').desc())
 
-        df_with_rank = self.df.withColumn(
-            'rn',
-            F.row_number().over(window)
+        df_with_rank = df.withColumn(
+        'rn',
+        F.row_number().over(window)
         )
 
         # оставляем последнее событие
         latest = df_with_rank.filter(F.col('rn') == 1)
 
         # формировка витрины 
-        result = latest.select(
+        return latest.select(
             'user_id',
             F.col('city').alias('act_city'),
             'ts'
         )
-
-        return result

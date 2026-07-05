@@ -20,11 +20,14 @@ class HomeCityBuilder:
         df = self.df.select(
             'user_id',
             'city',
-            F.to_date('ts').alias('dt')
-        ).dropDuplicates()
+            F.to_date(F.col('ts')).alias('dt')
+        ).dropDuplicates(["user_id", "city", "dt"])
 
         # считаю уникальные дни активности в городе
-        df = df.withColumn('dt_int', F.col('dt').cast('int'))
+        df = df.withColumn(
+            'dt_int',
+            F.datediff(F.col("dt"), F.lit("1970-01-01"))
+        )
 
         window = Window.partitionBy('user_id', 'city').orderBy('dt_int')
 
@@ -32,9 +35,7 @@ class HomeCityBuilder:
         df = df.withColumn(
             'rn',
             F.row_number().over(window)
-        )
-
-        df = df.withColumn(
+        ).withColumn(
             'grp',
             F.col('dt_int') - F.col('rn')
         )

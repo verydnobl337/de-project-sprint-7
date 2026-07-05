@@ -12,14 +12,8 @@ class TravelBuilder:
         df = self.df.select(
             "user_id",
             "city",
-            "ts",
-            "timezone"
+            F.to_timestamp("ts").alias("ts")
         )
-
-        # сортирую по времени
-        window = Window.partitionBy("user_id").orderBy("ts")
-
-        df = df.withColumn("rn", F.row_number().over(window))
 
         # travel_array
         travel_array = (
@@ -39,26 +33,24 @@ class TravelBuilder:
         # travel_count
         travel_count = (
             df.groupBy("user_id")
-            .agg(F.count("*").alias("travel_count"))
+            .agg(
+                F.countDistinct("city").alias("travel_count")
+            )
         )
 
         # local_time
         last_event = (
             df.withColumn(
-                "local_time",
-                F.from_utc_timestamp(F.col("ts"), F.col("timezone"))
-            )
-            .withColumn(
                 "rn",
                 F.row_number().over(
                     Window.partitionBy("user_id").orderBy(F.col("ts").desc())
                 )
             )
             .filter(F.col("rn") == 1)
-            .select("user_id", "local_time")
+            .select("user_id", "ts")
+            .withColumnRenamed("ts", "local_time")
         )
 
-        # объединяю
         result = (
             travel_count
             .join(travel_array, "user_id", "left")

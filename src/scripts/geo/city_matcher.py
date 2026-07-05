@@ -22,10 +22,14 @@ class CityMatcher:
         events = self.events_df.select(
             F.col("event.message_from").alias("user_id"),
             F.col("event.message_id").alias("message_id"),
-            F.col("event.message_ts").alias("ts"),
+            F.coalesce(
+                F.col("event.message_ts"),
+                F.col("event.datetime")
+            ).alias("ts"),
             F.col("lat").alias("event_lat"),
             F.col("lon").alias("event_lon")
         )
+        events = events.filter(F.col("user_id").isNotNull())
         # убираю шафл
         cities = broadcast(
             self.cities_df.select(
@@ -61,5 +65,6 @@ class CityMatcher:
             "message_id",
             "ts",
             "city",
-            "distance"
+            "distance",
+            "event_type"
         )

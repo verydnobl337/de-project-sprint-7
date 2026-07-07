@@ -8,16 +8,31 @@ class TravelBuilder:
         self.df = city_matched_df
 
     def build(self):
-        # привожу данные к базовому виду:
+        # привожу данные к базовому виду
         df = self.df.select(
             "user_id",
             "city",
             F.to_timestamp("ts").alias("ts")
         )
 
+        # сортировка событий пользователя по времени
+        travel_window = Window.partitionBy("user_id").orderBy("ts")
+
+        # оставляю только моменты смены города
+        travels = (
+            df.withColumn(
+                "prev_city",
+                F.lag("city").over(travel_window)
+            )
+            .filter(
+                F.col("prev_city").isNull() |
+                (F.col("city") != F.col("prev_city"))
+            )
+        )
+
         # travel_array
         travel_array = (
-            df.groupBy("user_id")
+            travels.groupBy("user_id")
             .agg(
                 F.collect_list(
                     F.struct("ts", "city")
@@ -32,9 +47,9 @@ class TravelBuilder:
 
         # travel_count
         travel_count = (
-            df.groupBy("user_id")
+            travels.groupBy("user_id")
             .agg(
-                F.countDistinct("city").alias("travel_count")
+                F.count("*").alias("travel_count")
             )
         )
 

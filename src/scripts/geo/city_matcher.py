@@ -27,7 +27,8 @@ class CityMatcher:
                 F.col("event.datetime")
             ).alias("ts"),
             F.col("lat").alias("event_lat"),
-            F.col("lon").alias("event_lon")
+            F.col("lon").alias("event_lon"),
+            F.col('event.event_type').alias('event_type')
         )
         events = events.filter(F.col("user_id").isNotNull())
         # убираю шафл
